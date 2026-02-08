@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Wiener Linien Monitor</title>
+<style>
+body { margin:0; background:#111; font-family:Arial,sans-serif; color:white; }
+.container { width:900px; max-width:100%; margin:auto; padding:20px; text-align:center; }
+.topbar { display:flex; justify-content:space-between; margin-bottom:20px; }
+.weather, .clock { background:#222; padding:14px 28px; border-radius:12px; font-size:24px; }
+.clock { font-size:26px; }
+.title { text-align:center; margin-bottom:15px; }
+iframe { width:100%; height:600px; border:none; border-radius:18px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="topbar">
+        <div class="weather" id="weather">--°C Wien</div>
+        <div class="clock" id="clock">--:--</div>
+    </div>
+    <div class="title">
+        <h1>Wiener Linien</h1>
+        <h2>U1 Oberlaa</h2>
+    </div>
+    <iframe src="https://urbonaut.wien/web/monitor/index?stop_id=214666497"></iframe>
+</div>
+
+<script>
+// -------- Uhr --------
+function updateClock() {
+    const now = new Date();
+    document.getElementById("clock").innerText =
+        String(now.getHours()).padStart(2,"0") + ":" +
+        String(now.getMinutes()).padStart(2,"0");
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// -------- Wetter --------
+async function updateWeather(){
+    try{
+        const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.2&longitude=16.37&current_weather=true");
+        const d = await r.json();
+        document.getElementById("weather").innerText =
+            d.current_weather?.temperature!==undefined ?
+            Math.round(d.current_weather.temperature)+"°C Wien" : "--°C Wien";
+    }catch{
+        document.getElementById("weather").innerText="--°C Wien";
+    }
+}
+updateWeather();
+setInterval(updateWeather, 5*60*1000); // alle 5 Minuten
+</script>
+
+</body>
+</html>
