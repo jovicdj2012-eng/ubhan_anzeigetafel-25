@@ -2,21 +2,74 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Wiener Linien Monitor</title>
+<title>Wiener Linien Live Monitor</title>
 <style>
-body { margin:0; background:#111; font-family:Arial,sans-serif; color:white; }
-.container { width:900px; max-width:100%; margin:auto; padding:20px; }
-.topbar { display:flex; justify-content:space-between; margin-bottom:20px; }
-.weather, .clock { background:#222; padding:14px 28px; border-radius:12px; font-size:24px; }
-.clock { font-size:26px; }
-.title { text-align:center; margin-bottom:15px; }
-.panel { background:#2b2b2b; border-radius:18px; padding:22px; }
-.header-line { font-size:28px; font-weight:bold; margin-bottom:15px; }
-.departure { display:flex; justify-content:space-between; align-items:center; padding:8px 14px; border-bottom:1px solid #444; border-radius:10px; margin-bottom:5px; }
-.line-box { background:#d60000; padding:8px 18px; border-radius:10px; font-weight:bold; font-size:20px; margin-right:10px; }
-.line-info { font-size:18px; color:#fff; margin-right:auto; }
-.time { color:orange; font-size:32px; font-weight:bold; transition: color 0.3s; }
-.departure-row { display:flex; align-items:center; }
+body {
+    margin: 0;
+    background: #111;
+    font-family: Arial, sans-serif;
+    color: white;
+}
+.container {
+    width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.weather {
+    background: #222;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 24px;
+}
+.clock {
+    background: #222;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 26px;
+}
+.title {
+    text-align: center;
+    margin-bottom: 15px;
+}
+.panel {
+    background: #2b2b2b;
+    border-radius: 18px;
+    padding: 22px;
+}
+.header-line {
+    font-size: 28px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+.departure {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px;
+    border-bottom: 1px solid #444;
+}
+.line-box {
+    background: #d60000;
+    padding: 12px 22px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 24px;
+}
+.direction {
+    font-size: 20px;
+    margin-left: 10px;
+    color: #ccc;
+}
+.time {
+    color: orange;
+    font-size: 32px;
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -27,80 +80,46 @@ body { margin:0; background:#111; font-family:Arial,sans-serif; color:white; }
     </div>
     <div class="title">
         <h1>Wiener Linien</h1>
-        <h2>U1 Oberlaa → Leopoldau</h2>
+        <h2>U1 Oberlaa</h2>
     </div>
     <div class="panel">
         <div class="header-line">Nächste Ankünfte</div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir1">Oberlaa → Leopoldau</div></div><div class="time" id="t1">--</div></div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir2">Oberlaa → Leopoldau</div></div><div class="time" id="t2">--</div></div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir3">Oberlaa → Leopoldau</div></div><div class="time" id="t3">--</div></div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir4">Oberlaa → Leopoldau</div></div><div class="time" id="t4">--</div></div>
+        <div class="departure"><div class="line-box">U1</div><div class="direction">→ Leopoldau</div><div class="time" id="t1">--</div></div>
+        <div class="departure"><div class="line-box">U1</div><div class="direction">→ Leopoldau</div><div class="time" id="t2">--</div></div>
+        <div class="departure"><div class="line-box">U1</div><div class="direction">→ Leopoldau</div><div class="time" id="t3">--</div></div>
+        <div class="departure"><div class="line-box">U1</div><div class="direction">→ Leopoldau</div><div class="time" id="t4">--</div></div>
     </div>
 </div>
 
 <script>
-// -------- Uhr --------
+// Uhr
 function updateClock() {
     const now = new Date();
     document.getElementById("clock").innerText =
-        String(now.getHours()).padStart(2,"0") + ":" +
-        String(now.getMinutes()).padStart(2,"0");
+        now.toLocaleTimeString("de-AT",{hour:"2-digit",minute:"2-digit"});
 }
 updateClock();
-setInterval(updateClock, 1000);
+setInterval(updateClock,1000);
 
-// -------- Wetter alle 5 Minuten --------
-async function updateWeather(){
-    try{
-        const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.2&longitude=16.37&current_weather=true");
-        const d = await r.json();
-        document.getElementById("weather").innerText =
-            d.current_weather?.temperature !== undefined ?
-            Math.round(d.current_weather.temperature)+"°C Wien" : "--°C Wien";
-    } catch(e){ document.getElementById("weather").innerText="--°C Wien"; }
-}
-updateWeather();
-setInterval(updateWeather, 5*60*1000);
-
-// -------- Abfahrten / Ankünfte in Minuten alle 10 Sekunden --------
-async function updateTimes(){
-    try{
-        const r = await fetch("https://vtapi.floscodes.net/monitor/?station=Oberlaa&lines=U1&countdown");
-        const data = await r.json();
-        const departures = data?.departures?.slice(0,4) || [];
-
-        for(let i=0;i<4;i++){
-            const elTime = document.getElementById("t"+(i+1));
-            const elDir = document.getElementById("dir"+(i+1));
-            const dep = departures[i];
-
-            if(!dep){
-                elTime.innerText="--";
-                elDir.innerText="Oberlaa → Leopoldau";
-                elTime.style.color="orange";
-                continue;
-            }
-
-            const min = dep.countdown; // Minuten bis zur Ankunft
-            elTime.innerText = min + " Min";
-            elTime.style.color = min <= 2 ? "red" : "orange";
-
-            // Richtung dynamisch (falls API unterschiedliche Richtung liefert)
-            if(dep.direction) elDir.innerText = dep.direction;
-        }
-    } catch(e){
-        console.log("Fehler Abfahrten", e);
-        for(let i=1;i<=4;i++){
-            const elTime=document.getElementById("t"+i);
-            const elDir=document.getElementById("dir"+i);
-            elTime.innerText="--";
-            elDir.innerText="Oberlaa → Leopoldau";
-            elTime.style.color="orange";
-        }
+// Wetter alle 5 Minuten
+async function updateWeather() {
+    try {
+        const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.2&longitude=16.37&current_weather=true");
+        const data = await res.json();
+        document.getElementById("weather").innerText = Math.round(data.current_weather.temperature)+"°C Wien";
+    } catch(e) {
+        console.log("Wetter Fehler");
     }
 }
-updateTimes();
-setInterval(updateTimes, 10000); // alle 10 Sekunden
-</script>
-</body>
-</html>
+updateWeather();
+setInterval(updateWeather, 300000);
+
+// U-Bahn Ankunft in Minuten
+const proxyURL = "http://DEINE_PC_IP:3000/departures/214666497"; // hier deine PC-IP eintragen
+
+async function updateTimes() {
+    try {
+        const res = await fetch(proxyURL);
+        const data = await
+
+            
