@@ -13,8 +13,10 @@ body { margin:0; background:#111; font-family:Arial,sans-serif; color:white; }
 .panel { background:#2b2b2b; border-radius:18px; padding:22px; }
 .header-line { font-size:28px; font-weight:bold; margin-bottom:15px; }
 .departure { display:flex; justify-content:space-between; align-items:center; padding:8px 14px; border-bottom:1px solid #444; border-radius:10px; margin-bottom:5px; }
-.line-box { background:#d60000; padding:8px 18px; border-radius:10px; font-weight:bold; font-size:24px; }
+.line-box { background:#d60000; padding:8px 18px; border-radius:10px; font-weight:bold; font-size:20px; margin-right:10px; }
+.line-info { font-size:18px; color:#fff; margin-right:auto; }
 .time { color:orange; font-size:32px; font-weight:bold; transition: color 0.3s; }
+.departure-row { display:flex; align-items:center; }
 </style>
 </head>
 <body>
@@ -25,14 +27,14 @@ body { margin:0; background:#111; font-family:Arial,sans-serif; color:white; }
     </div>
     <div class="title">
         <h1>Wiener Linien</h1>
-        <h2>U1 Oberlaa</h2>
+        <h2>U1 Oberlaa – Leopoldau</h2>
     </div>
     <div class="panel">
         <div class="header-line">Nächste Ankünfte</div>
-        <div class="departure"><div class="line-box">U1</div><div class="time" id="t1">--</div></div>
-        <div class="departure"><div class="line-box">U1</div><div class="time" id="t2">--</div></div>
-        <div class="departure"><div class="line-box">U1</div><div class="time" id="t3">--</div></div>
-        <div class="departure"><div class="line-box">U1</div><div class="time" id="t4">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t1">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t2">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t3">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t4">--</div></div>
     </div>
 </div>
 
@@ -63,7 +65,6 @@ setInterval(updateWeather, 5*60*1000);
 // -------- Abfahrten alle 10 Sekunden --------
 async function updateTimes(){
     try{
-        // vtapi JSON Abfahrten (U1 Oberlaa)
         const r = await fetch("https://vtapi.floscodes.net/monitor/?station=Oberlaa&lines=U1&countdown");
         const data = await r.json();
         const departures = data?.departures?.slice(0,4) || [];
@@ -72,7 +73,7 @@ async function updateTimes(){
             const el = document.getElementById("t"+(i+1));
             const dep = departures[i];
             if(!dep){ el.innerText="--"; el.style.color="orange"; continue; }
-            const min = dep.countdown; // Minuten bis zur Ankunft
+            const min = dep.countdown;
             el.innerText = min + " Min";
             el.style.color = min <= 2 ? "red" : "orange";
         }
