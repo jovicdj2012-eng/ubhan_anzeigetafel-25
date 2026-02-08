@@ -27,14 +27,14 @@ body { margin:0; background:#111; font-family:Arial,sans-serif; color:white; }
     </div>
     <div class="title">
         <h1>Wiener Linien</h1>
-        <h2>U1 Oberlaa – Leopoldau</h2>
+        <h2>U1 Oberlaa → Leopoldau</h2>
     </div>
     <div class="panel">
         <div class="header-line">Nächste Ankünfte</div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t1">--</div></div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t2">--</div></div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t3">--</div></div>
-        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info">Oberlaa → Leopoldau</div></div><div class="time" id="t4">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir1">Oberlaa → Leopoldau</div></div><div class="time" id="t1">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir2">Oberlaa → Leopoldau</div></div><div class="time" id="t2">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir3">Oberlaa → Leopoldau</div></div><div class="time" id="t3">--</div></div>
+        <div class="departure"><div class="departure-row"><div class="line-box">U1</div><div class="line-info" id="dir4">Oberlaa → Leopoldau</div></div><div class="time" id="t4">--</div></div>
     </div>
 </div>
 
@@ -62,7 +62,7 @@ async function updateWeather(){
 updateWeather();
 setInterval(updateWeather, 5*60*1000);
 
-// -------- Abfahrten alle 10 Sekunden --------
+// -------- Abfahrten / Ankünfte in Minuten alle 10 Sekunden --------
 async function updateTimes(){
     try{
         const r = await fetch("https://vtapi.floscodes.net/monitor/?station=Oberlaa&lines=U1&countdown");
@@ -70,19 +70,32 @@ async function updateTimes(){
         const departures = data?.departures?.slice(0,4) || [];
 
         for(let i=0;i<4;i++){
-            const el = document.getElementById("t"+(i+1));
+            const elTime = document.getElementById("t"+(i+1));
+            const elDir = document.getElementById("dir"+(i+1));
             const dep = departures[i];
-            if(!dep){ el.innerText="--"; el.style.color="orange"; continue; }
-            const min = dep.countdown;
-            el.innerText = min + " Min";
-            el.style.color = min <= 2 ? "red" : "orange";
+
+            if(!dep){
+                elTime.innerText="--";
+                elDir.innerText="Oberlaa → Leopoldau";
+                elTime.style.color="orange";
+                continue;
+            }
+
+            const min = dep.countdown; // Minuten bis zur Ankunft
+            elTime.innerText = min + " Min";
+            elTime.style.color = min <= 2 ? "red" : "orange";
+
+            // Richtung dynamisch (falls API unterschiedliche Richtung liefert)
+            if(dep.direction) elDir.innerText = dep.direction;
         }
     } catch(e){
         console.log("Fehler Abfahrten", e);
         for(let i=1;i<=4;i++){
-            const el=document.getElementById("t"+i);
-            el.innerText="--";
-            el.style.color="orange";
+            const elTime=document.getElementById("t"+i);
+            const elDir=document.getElementById("dir"+i);
+            elTime.innerText="--";
+            elDir.innerText="Oberlaa → Leopoldau";
+            elTime.style.color="orange";
         }
     }
 }
